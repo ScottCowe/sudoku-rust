@@ -43,12 +43,32 @@ impl Grid {
     fn populate() -> Self {
         let mut grid = Self::empty();
 
-        for i in 0..9 {
-            for j in 0..9 {
-                let row = j / 3;
-                let col = j - row * 3;
+        let allowedCols = [[ 0, 1, 2, 3, 4, 5, 6, 7, 8 ]; 9];
 
-                grid.subgrids[i / 3][i - (i / 3) * 3].rows[row][col] = j + 1;
+        for i in 1..=1 { // for testing
+            let mut allowedSquares = allowedCols[i - 1];
+            
+            for row in 0..9 {
+                let mut index = rand::thread_rng().gen_range(0..=8);
+                let mut col = allowedSquares[index];
+
+                while col == 10 {
+                    index = rand::thread_rng().gen_range(0..=8);
+                    col = allowedSquares[index];
+                }
+
+                allowedSquares[index] = 10;
+
+                let gridRow = row / 3;
+                let gridCol = col / 3;
+
+                let subgridRow = row % 3;
+                let subgridCol = col % 3;
+
+                println!("{} {} {} {} {} {}", row, col, gridRow, gridCol, subgridRow, subgridCol);
+
+                grid.subgrids[gridRow][gridCol].rows[subgridRow][subgridCol] = i;
+                print_grid(grid);
             }
         }
 
@@ -60,17 +80,15 @@ impl Grid {
 
         for i in 0..81 {
             let row = i / 9;
-            let col = i - row * 9;
+            let col = i % 9;
 
-            let gridRow = i / 27;
-            let gridCol = (i - gridRow * 27) / 9;
+            let gridRow = row / 3;
+            let gridCol = col / 3;
 
-            let subgrid = self.subgrids[gridRow][gridCol];
+            let subgridRow = row % 3;
+            let subgridCol = col % 3;
 
-            let subgridRow = row / 3;
-            let subgridCol = row - subgridRow * 3;
-
-            rows[row][col] = subgrid.rows[subgridRow][subgridCol];
+            rows[row][col] = self.subgrids[gridRow][gridCol].rows[subgridRow][subgridCol];
         }
 
         rows
@@ -98,7 +116,7 @@ fn print_grid(grid: Grid) {
 
         let mut line = String::from(""); 
 
-        for col in (0..9) {
+        for col in 0..9 {
             if col % 3 == 0 {
                line.push_str("| "); 
             }
@@ -122,6 +140,4 @@ fn print_grid(grid: Grid) {
 fn main() {
     let grid: Grid = Grid::populate();
     print_grid(grid);
-
-    let rows = grid.get_rows();
 }
