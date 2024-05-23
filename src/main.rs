@@ -95,19 +95,6 @@ impl Grid {
     }
 }
 
-fn shuffle_indexes(indexes: [usize; 9]) -> [usize; 9] {
-    let mut shuffled = indexes;
-
-    for i in (0..7) {
-        let j = rand::thread_rng().gen_range(i..9);
-        let temp = shuffled[i];
-        shuffled[i] = shuffled[j];
-        shuffled[j] = temp;
-    }
-
-    shuffled 
-}
-
 fn print_grid(grid: Grid) {
     for row in (0..9) {
         if row % 3 == 0 {
