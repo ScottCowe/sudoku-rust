@@ -14,7 +14,7 @@ impl Subgrid {
     fn contains(&self, number: usize) -> bool {
         for i in 0..9 {
             let row = i / 3;
-            let col = i - row * 3;
+            let col = i % 3;
 
             if self.rows[row][col] == number {
                 return true;
@@ -45,29 +45,37 @@ impl Grid {
 
         let allowedCols = [[ 0, 1, 2, 3, 4, 5, 6, 7, 8 ]; 9];
 
-        for i in 1..=1 { // for testing
-            let mut allowedSquares = allowedCols[i - 1];
-            
-            for row in 0..9 {
-                let mut index = rand::thread_rng().gen_range(0..=8);
-                let mut col = allowedSquares[index];
+        for n in 1..=1 { // for testing
+            let mut allowedRows: Vec<usize> = vec![ 0, 1, 2, 3, 4, 5, 6, 7, 8 ]; 
+            let mut allowedCols: Vec<usize> = vec![ 0, 1, 2, 3, 4, 5, 6, 7, 8 ];
 
-                while col == 10 {
-                    index = rand::thread_rng().gen_range(0..=8);
-                    col = allowedSquares[index];
+            for i in 0..9 { // modify to check if selected row and col is occupied
+                let gridRow = i / 3;
+                let gridCol = i % 3;
+
+                let mut row = 9;
+                let mut col = 9;
+
+                while !allowedRows.contains(&row) {
+                    let rowRange = (gridRow * 3)..((gridRow + 1) * 3);
+                    row = rand::thread_rng().gen_range(rowRange);
                 }
 
-                allowedSquares[index] = 10;
+                let rowIndex = allowedRows.iter().position(|&r| r == row).unwrap();
+                allowedRows.remove(rowIndex); 
 
-                let gridRow = row / 3;
-                let gridCol = col / 3;
+                while !allowedCols.contains(&col) {
+                    let colRange = (gridCol * 3)..((gridCol + 1) * 3);
+                    col = rand::thread_rng().gen_range(colRange);
+                }
+
+                let colIndex = allowedCols.iter().position(|&r| r == col).unwrap();
+                allowedCols.remove(colIndex);
 
                 let subgridRow = row % 3;
                 let subgridCol = col % 3;
 
-                println!("{} {} {} {} {} {}", row, col, gridRow, gridCol, subgridRow, subgridCol);
-
-                grid.subgrids[gridRow][gridCol].rows[subgridRow][subgridCol] = i;
+                grid.subgrids[gridRow][gridCol].rows[subgridRow][subgridCol] = n;
                 print_grid(grid);
             }
         }
