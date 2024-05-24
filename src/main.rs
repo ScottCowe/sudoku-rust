@@ -43,40 +43,52 @@ impl Grid {
     fn populate() -> Self {
         let mut grid = Self::empty();
 
-        let allowedCols = [[ 0, 1, 2, 3, 4, 5, 6, 7, 8 ]; 9];
-
-        for n in 1..=1 { // for testing
+        for n in 1..=9 { 
             let mut allowedRows: Vec<usize> = vec![ 0, 1, 2, 3, 4, 5, 6, 7, 8 ]; 
             let mut allowedCols: Vec<usize> = vec![ 0, 1, 2, 3, 4, 5, 6, 7, 8 ];
 
-            for i in 0..9 { // modify to check if selected row and col is occupied
+            let mut i = 0;
+
+            while i < 9 { 
                 let gridRow = i / 3;
                 let gridCol = i % 3;
+
+                let mut subgridRow = 3;
+                let mut subgridCol = 3;
 
                 let mut row = 9;
                 let mut col = 9;
 
-                while !allowedRows.contains(&row) {
-                    let rowRange = (gridRow * 3)..((gridRow + 1) * 3);
-                    row = rand::thread_rng().gen_range(rowRange);
+                let mut subgridRowOptions = vec![ 0, 1, 2 ];
+                let mut subgridColOptions = vec![ 0, 1, 2 ];
+
+                while !allowedRows.contains(&row) && subgridRowOptions.len() > 0 {
+                    let index = rand::thread_rng().gen_range(0..subgridRowOptions.len());
+                    subgridRow = subgridRowOptions.remove(index);
+                    row = gridRow * 3 + subgridRow;
+                    println!("randoming");
                 }
 
                 let rowIndex = allowedRows.iter().position(|&r| r == row).unwrap();
                 allowedRows.remove(rowIndex); 
 
-                while !allowedCols.contains(&col) {
-                    let colRange = (gridCol * 3)..((gridCol + 1) * 3);
-                    col = rand::thread_rng().gen_range(colRange);
+                while !allowedCols.contains(&col) && subgridColOptions.len() > 0 {
+                    let index = rand::thread_rng().gen_range(0..subgridColOptions.len());
+                    subgridCol = subgridColOptions.remove(index);
+                    col = gridCol * 3 + subgridCol;
+                    println!("randoming");
                 }
 
                 let colIndex = allowedCols.iter().position(|&r| r == col).unwrap();
                 allowedCols.remove(colIndex);
 
-                let subgridRow = row % 3;
-                let subgridCol = col % 3;
+                println!("Trying {} {}", row, col);
 
-                grid.subgrids[gridRow][gridCol].rows[subgridRow][subgridCol] = n;
-                print_grid(grid);
+                if grid.subgrids[gridRow][gridCol].rows[subgridRow][subgridCol] == 0 {
+                    grid.subgrids[gridRow][gridCol].rows[subgridRow][subgridCol] = n;
+                    print_grid(grid);
+                    i += 1;
+                }
             }
         }
 
