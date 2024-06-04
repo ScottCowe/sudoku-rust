@@ -1,4 +1,5 @@
-use rand::Rng;
+use rand::seq::SliceRandom;
+use rand::{thread_rng, Rng};
 
 #[derive(Copy, Clone)]
 struct Subgrid {
@@ -11,27 +12,36 @@ struct Grid {
 }
 
 impl Subgrid {
-    fn contains(&self, number: usize) -> bool {
-        for i in 0..9 {
-            let row = i / 3;
-            let col = i % 3;
-
-            if self.rows[row][col] == number {
-                return true;
-            }
-        }
-
-        return false;
-    }
-}
-
-impl Grid {
     fn empty() -> Self {
         let emptySubgrid: Subgrid = Subgrid {
             rows: [[0; 3]; 3],
         };
 
-        let subgrids: [[Subgrid; 3]; 3] = [[emptySubgrid; 3]; 3]; 
+        emptySubgrid 
+    }
+
+    fn populate() -> Self {
+        let mut subgrid = Subgrid::empty();
+
+        let mut rng = thread_rng();
+
+        let mut nums = [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ];
+        nums.shuffle(&mut rng);
+
+        for i in 0..9 {
+            let row = i / 3;
+            let col = i % 3;
+
+            subgrid.rows[row][col] = nums[i];
+        }
+
+        subgrid
+    }
+}
+
+impl Grid {
+    fn empty() -> Self {
+        let subgrids: [[Subgrid; 3]; 3] = [[Subgrid::empty(); 3]; 3]; 
 
         let grid = Grid { 
             subgrids,
@@ -41,56 +51,19 @@ impl Grid {
     }
 
     fn populate() -> Self {
-        let mut grid = Self::empty();
+        let mut grid = Grid::empty();
 
-        for n in 1..=9 { 
-            let mut allowedRows: Vec<usize> = vec![ 0, 1, 2, 3, 4, 5, 6, 7, 8 ]; 
-            let mut allowedCols: Vec<usize> = vec![ 0, 1, 2, 3, 4, 5, 6, 7, 8 ];
+        // create 3 randomly filled subgrids
+        // place these diagonally
+        grid.subgrids[0][0] = Subgrid::populate();
+        grid.subgrids[1][1] = Subgrid::populate();
+        grid.subgrids[2][2] = Subgrid::populate();
 
-            let mut i = 0;
-
-            while i < 9 { 
-                let gridRow = i / 3;
-                let gridCol = i % 3;
-
-                let mut subgridRow = 3;
-                let mut subgridCol = 3;
-
-                let mut row = 9;
-                let mut col = 9;
-
-                let mut subgridRowOptions = vec![ 0, 1, 2 ];
-                let mut subgridColOptions = vec![ 0, 1, 2 ];
-
-                while !allowedRows.contains(&row) && subgridRowOptions.len() > 0 {
-                    let index = rand::thread_rng().gen_range(0..subgridRowOptions.len());
-                    subgridRow = subgridRowOptions.remove(index);
-                    row = gridRow * 3 + subgridRow;
-                    println!("randoming");
-                }
-
-                let rowIndex = allowedRows.iter().position(|&r| r == row).unwrap();
-                allowedRows.remove(rowIndex); 
-
-                while !allowedCols.contains(&col) && subgridColOptions.len() > 0 {
-                    let index = rand::thread_rng().gen_range(0..subgridColOptions.len());
-                    subgridCol = subgridColOptions.remove(index);
-                    col = gridCol * 3 + subgridCol;
-                    println!("randoming");
-                }
-
-                let colIndex = allowedCols.iter().position(|&r| r == col).unwrap();
-                allowedCols.remove(colIndex);
-
-                println!("Trying {} {}", row, col);
-
-                if grid.subgrids[gridRow][gridCol].rows[subgridRow][subgridCol] == 0 {
-                    grid.subgrids[gridRow][gridCol].rows[subgridRow][subgridCol] = n;
-                    print_grid(grid);
-                    i += 1;
-                }
-            }
-        }
+        // for each blank square
+        // (for each subgrid row, col, when row != col)
+        //  create array 1..=9
+        //  shuffle array
+        //  pop until allowed number is found and placed
 
         grid
     }
