@@ -79,13 +79,39 @@ impl Grid {
         grid
     }
 
+    fn get_square(&self, row: usize, col: usize) -> usize {
+        let gridRow = row / 3;
+        let gridCol = col / 3;
+
+        let subgridRow = row % 3;
+        let subgridCol = col % 3;
+
+        self.subgrids[gridRow][gridCol].rows[subgridRow][subgridCol]
+    }
+
     fn get_nth_row(&self, n: usize) -> [usize; 9] {
-        let row = [0; 9];
+        let mut row = [0; 9];
+
+        let start_index = 9 * n;
+
+        for i in start_index..start_index+9 {
+            let col = i - start_index;
+            row[col] = self.get_square(n, col);
+        }
+
         row
     }
 
     fn get_nth_col(&self, n: usize) -> [usize; 9] {
-        let col = [0; 9];
+        let mut col = [0; 9];
+
+        let start_index = 9 * n;
+
+        for i in start_index..start_index+9 {
+            let row = i - start_index;
+            col[row] = self.get_square(row, n);
+        }
+
         col
     }
 
@@ -141,4 +167,5 @@ fn print_grid(grid: Grid) {
 fn main() {
     let grid: Grid = Grid::populate();
     print_grid(grid);
+    println!("{:?}", grid.get_nth_col(2));
 }
