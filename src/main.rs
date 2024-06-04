@@ -60,12 +60,33 @@ impl Grid {
         grid.subgrids[2][2] = Subgrid::populate();
 
         // for each blank square
-        // (for each subgrid row, col, when row != col)
-        //  create array 1..=9
-        //  shuffle array
-        //  pop until allowed number is found and placed
+        for i in 0..81 {
+            let row = i / 9;
+            let col = i % 9;
+
+            if row % 3 == col % 3 { // if on \ diagonal subgrid
+                continue;
+            }
+
+            let mut rng = thread_rng();
+
+            let mut nums = vec![ 1, 2, 3, 4, 5, 6, 7, 8, 9 ];
+            nums.shuffle(&mut rng);
+
+            //  pop until allowed number is found and placed
+        }
 
         grid
+    }
+
+    fn get_nth_row(&self, n: usize) -> [usize; 9] {
+        let row = [0; 9];
+        row
+    }
+
+    fn get_nth_col(&self, n: usize) -> [usize; 9] {
+        let col = [0; 9];
+        col
     }
 
     fn get_rows(&self) -> [[usize; 9]; 9] {
