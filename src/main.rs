@@ -1,171 +1,95 @@
-use rand::seq::SliceRandom;
-use rand::{thread_rng, Rng};
+use std::collections::{ HashMap, HashSet };
 
-#[derive(Copy, Clone)]
-struct Subgrid {
-    rows: [[usize; 3]; 3],
+struct Board {
+    squares: HashMap<String, String>
 }
 
-#[derive(Copy, Clone)]
-struct Grid {
-    subgrids: [[Subgrid; 3]; 3],
-}
-
-impl Subgrid {
+impl Board {
     fn empty() -> Self {
-        let emptySubgrid: Subgrid = Subgrid {
-            rows: [[0; 3]; 3],
-        };
+        let mut squares = HashMap::new();
 
-        emptySubgrid 
-    }
+        for index in 0..81 {
+            let row: u8 = index / 9;
+            let col: u8 = index % 9;
 
-    fn populate() -> Self {
-        let mut subgrid = Subgrid::empty();
-
-        let mut rng = thread_rng();
-
-        let mut nums = [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ];
-        nums.shuffle(&mut rng);
-
-        for i in 0..9 {
-            let row = i / 3;
-            let col = i % 3;
-
-            subgrid.rows[row][col] = nums[i];
+            let square = format!("{}{}", (row + 65) as char, col + 1);
+            
+            squares.insert(square, "123456789".to_string());
         }
 
-        subgrid
+        let board = Board { squares };
+        board
+    }
+
+    fn solved(&self) -> Result<bool, String> {
+        for (id, values) in &self.squares {
+            if values == "" {
+                return Err("Board is invalid".to_string());
+            }
+
+            if values.len() != 1 {
+                return Ok(false);
+            }
+        }
+
+        Ok(true) 
+    }
+
+    fn print(&self) {
+        for (id, values) in &self.squares {
+            println!("{} {}", id, values);
+        }
     }
 }
 
-impl Grid {
-    fn empty() -> Self {
-        let subgrids: [[Subgrid; 3]; 3] = [[Subgrid::empty(); 3]; 3]; 
+fn get_peers_of_square(square: &str) -> Vec<String> {
+    let mut peers = vec![];
+    
+    let row = square.chars().nth(0).unwrap();
+    let col = square.chars().nth(1).unwrap();
 
-        let grid = Grid { 
-            subgrids,
-        };
-
-        grid 
-    }
-
-    fn populate() -> Self {
-        let mut grid = Grid::empty();
-
-        // create 3 randomly filled subgrids
-        // place these diagonally
-        grid.subgrids[0][0] = Subgrid::populate();
-        grid.subgrids[1][1] = Subgrid::populate();
-        grid.subgrids[2][2] = Subgrid::populate();
-
-        // for each blank square
-        for i in 0..81 {
-            let row = i / 9;
-            let col = i % 9;
-
-            if row % 3 == col % 3 { // if on \ diagonal subgrid
-                continue;
-            }
-
-            let mut rng = thread_rng();
-
-            let mut nums = vec![ 1, 2, 3, 4, 5, 6, 7, 8, 9 ];
-            nums.shuffle(&mut rng);
-
-            //  pop until allowed number is found and placed
+    for index in 1..=9 {
+        let sqr = format!("{}{}", row, index);
+        
+        if sqr != square {
+            peers.push(sqr);
         }
-
-        grid
     }
+    
+    for index in 0..9 {
+        let sqr = format!("{}{}", (index as u8 + 65) as char, col);
 
-    fn get_square(&self, row: usize, col: usize) -> usize {
-        let gridRow = row / 3;
-        let gridCol = col / 3;
-
-        let subgridRow = row % 3;
-        let subgridCol = col % 3;
-
-        self.subgrids[gridRow][gridCol].rows[subgridRow][subgridCol]
-    }
-
-    fn get_nth_row(&self, n: usize) -> [usize; 9] {
-        let mut row = [0; 9];
-
-        let start_index = 9 * n;
-
-        for i in start_index..start_index+9 {
-            let col = i - start_index;
-            row[col] = self.get_square(n, col);
+        if sqr != square {
+            peers.push(sqr);
         }
-
-        row
     }
 
-    fn get_nth_col(&self, n: usize) -> [usize; 9] {
-        let mut col = [0; 9];
+    // Get peers in block
+    let block_row = (row as u8 - 65) / 3 + 1;
+    let block_col = (col as u8 - '0' as u8) / 3 + 1;
 
-        let start_index = 9 * n;
+    for index in 0..9 {
+        let peer_row = (index / 3) * block_row;
+        let peer_col = (index % 3 + 1) * block_col;
 
-        for i in start_index..start_index+9 {
-            let row = i - start_index;
-            col[row] = self.get_square(row, n);
+        let sqr = format!("{}{}", (peer_row + 65) as char, peer_col);
+
+        if sqr != square {
+            peers.push(sqr);
         }
-
-        col
     }
 
-    fn get_rows(&self) -> [[usize; 9]; 9] {
-        let mut rows: [[usize; 9]; 9] = [[0; 9]; 9];
+    let set: HashSet<_> = peers.into_iter().collect();
 
-        for i in 0..81 {
-            let row = i / 9;
-            let col = i % 9;
-
-            let gridRow = row / 3;
-            let gridCol = col / 3;
-
-            let subgridRow = row % 3;
-            let subgridCol = col % 3;
-
-            rows[row][col] = self.subgrids[gridRow][gridCol].rows[subgridRow][subgridCol];
-        }
-
-        rows
-    }
-}
-
-fn print_grid(grid: Grid) {
-    for row in (0..9) {
-        if row % 3 == 0 {
-            println!("+-------+-------+-------+");
-        }
-
-        let mut line = String::from(""); 
-
-        for col in 0..9 {
-            if col % 3 == 0 {
-               line.push_str("| "); 
-            }
-
-            let num = grid.get_rows()[row][col];
-
-            if num == 0 {
-                line.push_str("  ");
-            }
-            else {
-                line.push_str(&format!("{} ", num));
-            }
-        }
-
-        println!("{}|", line);
-    }
-
-    println!("+-------+-------+-------+");
+    set.into_iter().collect()
 }
 
 fn main() {
-    let grid: Grid = Grid::populate();
-    print_grid(grid);
-    println!("{:?}", grid.get_nth_col(2));
+    let board = Board::empty();
+
+    let peers = get_peers_of_square("A1");
+
+    for peer in peers {
+        println!("{}", peer);
+    }
 }
