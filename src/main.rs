@@ -22,7 +22,7 @@ impl Board {
     }
 
     fn solved(&self) -> Result<bool, String> {
-        for (id, values) in &self.squares {
+        for (_, values) in &self.squares {
             if values == "" {
                 return Err("Board is invalid".to_string());
             }
@@ -65,29 +65,35 @@ fn get_peers_of_square(square: &str) -> Vec<String> {
     }
 
     // Get peers in block
-    let block_row = (row as u8 - 65) / 3 + 1;
-    let block_col = (col as u8 - '0' as u8) / 3 + 1;
+    let block_row = (row as u8 - 65) / 3;
+    let block_col = (col as u8 - '0' as u8) / 3;
 
     for index in 0..9 {
-        let peer_row = (index / 3) * block_row;
-        let peer_col = (index % 3 + 1) * block_col;
+        let inblock_row = index / 3;
+        let inblock_col = index % 3;
 
-        let sqr = format!("{}{}", (peer_row + 65) as char, peer_col);
+        let peer_row = block_row * 3 + inblock_row + 1;
+        let peer_col = block_col * 3 + inblock_col + 1;
+
+        let sqr = format!("{}{}", (peer_row + 64) as char, peer_col);
 
         if sqr != square {
             peers.push(sqr);
         }
     }
 
-    let set: HashSet<_> = peers.into_iter().collect();
+    // Removes duplicated and turns back into vec
+    let set: HashSet<String> = peers.into_iter().collect();
+    let mut result: Vec<String> = set.into_iter().collect();
+    result.sort();
 
-    set.into_iter().collect()
+    result
 }
 
 fn main() {
     let board = Board::empty();
 
-    let peers = get_peers_of_square("A1");
+    let peers = get_peers_of_square("D5");
 
     for peer in peers {
         println!("{}", peer);
