@@ -21,7 +21,24 @@ impl Board {
         board
     }
 
-    fn solved(&self) -> Result<bool, String> {
+    fn generate_puzzle() -> Self {
+        let mut board = Self::empty();
+
+        board
+    }
+
+    fn set_square(&self, square: &str, to: u8) {
+        let peers = get_peers_of_square(square);
+    
+        // set entry in hashmap to to 
+
+        // basic strat
+        // if square only has one possibility
+        //  iterate thru peers
+        //      set square to current minus to (recursive) 
+    }
+
+    fn is_solved(&self) -> Result<bool, String> {
         for (_, values) in &self.squares {
             if values == "" {
                 return Err("Board is invalid".to_string());
@@ -36,14 +53,30 @@ impl Board {
     }
 
     fn print(&self) {
-        for (id, values) in &self.squares {
-            println!("{} {}", id, values);
+        let mut board = String::new();
+
+        for index in 0..81 {
+            let row = index / 9;
+            let col = index % 9;
+
+            let square = format!("{}{}", (row as u8 + 65) as char, col + 1);
+
+            let value = &self.squares.get(&square).unwrap();
+
+            board += value; 
+            board += "\t";
+
+            if index % 9 == 8 {
+                board += "\n";
+            }
         }
+
+        println!("{}", board);
     }
 }
 
 fn get_peers_of_square(square: &str) -> Vec<String> {
-    let mut peers = vec![];
+    let mut peers = Vec::new();
     
     let row = square.chars().nth(0).unwrap();
     let col = square.chars().nth(1).unwrap();
@@ -92,10 +125,5 @@ fn get_peers_of_square(square: &str) -> Vec<String> {
 
 fn main() {
     let board = Board::empty();
-
-    let peers = get_peers_of_square("D5");
-
-    for peer in peers {
-        println!("{}", peer);
-    }
+    board.print();
 }
